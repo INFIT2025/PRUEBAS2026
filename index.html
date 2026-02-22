@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JUAN - NIVEL 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { gold: '#D4AF37', dark: '#050505', panel: '#151515' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Oswald', 'sans-serif'] },
+                    animation: { 'fade-in': 'fadeIn 0.8s ease-out forwards', 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #000; color: #fff; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-panel { background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(212, 175, 55, 0.15); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+        .gold-text { background: linear-gradient(to right, #D4AF37, #F1D780, #D4AF37); -webkit-background-clip: text; color: transparent; background-size: 200% auto; animation: shine 3s linear infinite; }
+        @keyframes shine { to { background-position: 200% center; } }
+        
+        #lock-screen { position: fixed; inset: 0; z-index: 9999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; padding: 20px; }
+        #welcome-screen { position: fixed; inset: 0; z-index: 9998; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; }
+        .lock-input { background: transparent; border-bottom: 2px solid #333; color: #D4AF37; font-family: 'Oswald'; font-size: 1.5rem; text-align: center; width: 100%; max-width: 280px; outline: none; letter-spacing: 2px; }
+        
+        #access-blocked, #access-expired { position: fixed; inset: 0; z-index: 9950; background: rgba(0,0,0,0.97); backdrop-filter: blur(15px); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+        
+        .trial-badge { animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.5); } 50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.8); } }
+        
+        .example-btn { background: rgba(30, 30, 30, 0.8); border: 1px solid #333; transition: all 0.3s; }
+        .example-btn:hover { border-color: #D4AF37; background: rgba(212, 175, 55, 0.1); }
+        .example-btn.selected { border-color: #D4AF37; background: rgba(212, 175, 55, 0.2); }
+
+        .card-exercise { background: linear-gradient(145deg, #151515, #0a0a0a); border: 1px solid #222; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .card-exercise:active { transform: scale(0.98); }
+
+        .day-check { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .day-check.completed { background: linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%); color: black; border: none; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+        .day-check.today-border { border-color: #D4AF37; box-shadow: 0 0 10px rgba(212, 175, 55, 0.5) inset; }
+        .day-check.future { opacity: 0.3; pointer-events: none; }
+
+        .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); padding: 8px 12px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.2); }
+        .dock-item { background: transparent; color: #666; border: none; padding: 10px 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s; border-radius: 20px; font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+        .dock-item.active { background: linear-gradient(135deg, #D4AF37, #AA8C2C); color: black; }
+        .dock-item:hover:not(.active) { color: #D4AF37; }
+        .brand-logo-client { letter-spacing: -0.05em; }
+        
+        .security-badge { background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1)); border: 1px solid rgba(34,197,94,0.3); }
+        .goal-card { background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05)); border: 1px solid rgba(212, 175, 55, 0.3); }
+    </style>
+</head>
+<body class="min-h-screen pb-24 antialiased selection:bg-gold selection:text-black overflow-x-hidden">
+
+    <!-- DATA MODEL -->
+    <script id="infit-data-model" type="application/json">{"meta":{"nombre":"JUAN","telefono":"5535766379","fechaInicio":"2026-02-22","nivel":1,"lugar":"Commercial Gym","accessType":"trial","generatedDate":"2026-02-22T21:20:40.373Z"},"contenido":{"frecuencia":"4 Días / Semana","estrategia":"Fundamentos Hipertróficos: Técnica Pura y Volumen Progresivo para Definición","promo":"LA DISCIPLINA ES EL PUENTE ENTRE METAS Y LOGROS.","nutricion":"La nutrición adecuada es el 70% - 80 % de tus resultados.\nCome alimentos reales y evita procesados.","descanso":"El descanso es tan vital como el entrenamiento. Prioriza 7-9 horas de sueño de calidad, hidrátate constantemente y mantén una nutrición adecuada rica en proteínas y baja en grasas saturadas para la recuperación muscular y el desarrollo de definición extrema.","calentamiento":""},"dias":[{"id":"day-1771795218614-0","label":"Lunes","focus":"Pecho y Tríceps","exercises":[{"id":"ex-1771795218614-leuda","name":"Press Banca con Mancuernas","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=dumbbell%20bench%20press%20technique"},{"id":"ex-1771795218614-jxf2i","name":"Press Inclinado con Mancuernas","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=incline%20dumbbell%20press%20form"},{"id":"ex-1771795218614-txo2h","name":"Aperturas en Pec Deck","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=pec%20deck%20fly%20machine%20form"},{"id":"ex-1771795218614-82e5g","name":"Extensiones de Tríceps con Cuerda","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=rope%20pushdown%20technique"},{"id":"ex-1771795218614-cyan0","name":"Copa a Dos Manos (Extensión de Tríceps sobre la cabeza)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=overhead%20dumbbell%20extension%20form"}]},{"id":"day-1771795218614-1","label":"Martes","focus":"Espalda y Bíceps","exercises":[{"id":"ex-1771795218614-b8fyl","name":"Jalones al Pecho (agarre neutro o normal)","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=lat%20pulldown%20technique"},{"id":"ex-1771795218614-v7gol","name":"Remo Sentado en Máquina (agarre cerrado)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20cable%20row%20form"},{"id":"ex-1771795218614-enol3","name":"Hiperextensiones (sin peso)","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=hyperextension%20exercise%20form"},{"id":"ex-1771795218614-i346d","name":"Curl de Bíceps con Barra","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=barbell%20curl%20technique"},{"id":"ex-1771795218614-eph2h","name":"Curl Predicador con Mancuerna","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=dumbbell%20preacher%20curl%20form"}]},{"id":"day-1771795218614-2","label":"Jueves","focus":"Hombros y Trapecio","exercises":[{"id":"ex-1771795218614-iqe8p","name":"Press Militar con Mancuernas Sentado","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20dumbbell%20overhead%20press%20form"},{"id":"ex-1771795218614-d79q9","name":"Elevaciones Laterales con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20lateral%20raise%20technique"},{"id":"ex-1771795218614-nb8ht","name":"Face Pulls (para deltoides posteriores y postura)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=face%20pulls%20exercise%20form"},{"id":"ex-1771795218614-38xv3","name":"Encogimientos con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20shrugs%20technique"}]},{"id":"day-1771795218614-3","label":"Sábado","focus":"Piernas y Abdominales","exercises":[{"id":"ex-1771795218614-iuv0u","name":"Prensa de Piernas","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=leg%20press%20machine%20form"},{"id":"ex-1771795218614-i0npq","name":"Extensiones de Cuádriceps","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20extension%20machine%20technique"},{"id":"ex-1771795218614-z6pxl","name":"Curl Femoral Tumbado","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=lying%20leg%20curl%20machine%20form"},{"id":"ex-1771795218614-otsbt","name":"Elevaciones de Gemelos Sentado","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=seated%20calf%20raise%20technique"},{"id":"ex-1771795218614-ka1i8","name":"Crunch en Máquina","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=machine%20crunch%20exercise%20form"},{"id":"ex-1771795218614-e4oun","name":"Plancha","sets":"3","reps":"30-45 segundos","url":"https://www.youtube.com/results?search_query=plank%20exercise%20form"}]}]}</script>
+
+    <!-- LOCK SCREEN (VERIFICACIÓN DE IDENTIDAD) -->
+    <div id="lock-screen">
+        <div class="mb-8 text-center relative">
+            <div class="absolute inset-0 bg-gold blur-[60px] opacity-10 rounded-full"></div>
+            <h1 class="text-5xl font-heading font-bold text-white leading-none brand-logo-client relative z-10">
+                IN<span class="text-gold">FIT</span>
+            </h1>
+            <p class="text-xs text-gray-500 tracking-[0.4em] uppercase font-semibold mt-2">Nivel 1</p>
+            <div class="mt-3 px-4 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-full inline-block"><span class="text-yellow-400 text-[10px] font-bold uppercase tracking-wider"><i class="fas fa-clock mr-1"></i> Vista Previa 24h</span></div>
+        </div>
+        
+        <div class="security-badge rounded-lg px-4 py-2 mb-6 flex items-center gap-2">
+            <i class="fas fa-shield-alt text-green-400"></i>
+            <span class="text-green-400 text-[10px] uppercase tracking-wider font-bold">Acceso Protegido</span>
+        </div>
+        
+        <div class="w-full max-w-xs space-y-6">
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 text-center">
+                    <i class="fas fa-phone mr-1"></i> Ingresa tu teléfono
+                </label>
+                <input type="tel" id="phone-input" class="lock-input mb-2" placeholder="Ej: 5512345678" maxlength="15">
+                <p class="text-[9px] text-gray-600 text-center">El número registrado con tu entrenador</p>
+            </div>
+            
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 text-center">
+                    <i class="fas fa-key mr-1"></i> Contraseña: Nombre + Año
+                </label>
+                <input type="password" id="pass-input" class="lock-input mb-2" placeholder="Ej: VICTOR2025">
+            </div>
+            
+            <button id="unlock-btn" class="w-full py-3 bg-gold text-black font-heading font-bold uppercase tracking-widest rounded-lg hover:bg-white transition shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+                <i class="fas fa-unlock mr-2"></i> Acceder
+            </button>
+            
+            <p id="error-msg" class="text-red-500 text-xs text-center hidden"></p>
+        </div>
+    </div>
+
+    <!-- WELCOME SCREEN (BIENVENIDA + OBJETIVO) -->
+    <div id="welcome-screen">
+        <div class="w-full max-w-md animate-fade-in">
+            <!-- Logo y Bienvenida -->
+            <div class="text-center mb-8 relative">
+                <div class="absolute inset-0 bg-gold blur-[60px] opacity-20 rounded-full"></div>
+                <div class="relative z-10">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.5)]">
+                        <i class="fas fa-hand-sparkles text-3xl text-black"></i>
+                    </div>
+                    <h1 class="text-3xl font-heading font-bold text-white uppercase italic">¡Bienvenido, JUAN!</h1>
+                    <p class="text-gold text-sm mt-2">Tu plan de entrenamiento está listo</p>
+                </div>
+            </div>
+
+            <!-- Info del Ciclo -->
+            <div class="glass-panel p-4 rounded-xl mb-6 border-l-4 border-gold">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Tu desafío</p>
+                        <p class="text-white font-heading font-bold text-lg">Nivel 1 • 30 Días</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center">
+                        <i class="fas fa-trophy text-gold text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta del Objetivo -->
+            <div class="mb-6">
+                <h2 class="text-white font-heading text-xl mb-2 text-center">¿Cuál es tu meta para este ciclo?</h2>
+                <p class="text-gray-500 text-xs text-center mb-4">Elige un objetivo breve y realista que puedas cumplir en 30 días</p>
+                
+                <!-- Ejemplos de objetivos -->
+                <div class="grid grid-cols-2 gap-2 mb-4" id="goal-examples">
+                    <button onclick="selectGoal(this, 'No faltar a ningún entrenamiento')" class="example-btn p-3 rounded-lg text-left">
+                        <i class="fas fa-calendar-check text-gold text-sm mb-1"></i>
+                        <p class="text-white text-xs font-bold">Consistencia</p>
+                        <p class="text-gray-500 text-[10px]">No faltar ningún día</p>
+                    </button>
+                    <button onclick="selectGoal(this, 'Mejorar mi técnica en sentadillas')" class="example-btn p-3 rounded-lg text-left">
+                        <i class="fas fa-bullseye text-gold text-sm mb-1"></i>
+                        <p class="text-white text-xs font-bold">Técnica</p>
+                        <p class="text-gray-500 text-[10px]">Mejorar forma</p>
+                    </button>
+                    <button onclick="selectGoal(this, 'Aumentar la fuerza en press de banca')" class="example-btn p-3 rounded-lg text-left">
+                        <i class="fas fa-dumbbell text-gold text-sm mb-1"></i>
+                        <p class="text-white text-xs font-bold">Fuerza</p>
+                        <p class="text-gray-500 text-[10px]">Más peso</p>
+                    </button>
+                    <button onclick="selectGoal(this, 'Dormir mínimo 7 horas diarias')" class="example-btn p-3 rounded-lg text-left">
+                        <i class="fas fa-moon text-gold text-sm mb-1"></i>
+                        <p class="text-white text-xs font-bold">Descanso</p>
+                        <p class="text-gray-500 text-[10px]">Mejor recuperación</p>
+                    </button>
+                    <button onclick="selectGoal(this, 'Sentirme con más energía todo el día')" class="example-btn p-3 rounded-lg text-left">
+                        <i class="fas fa-bolt text-gold text-sm mb-1"></i>
+                        <p class="text-white text-xs font-bold">Energía</p>
+                        <p class="text-gray-500 text-[10px]">Vitalidad</p>
+                    </button>
+                    <button onclick="selectGoal(this, 'Mejorar mi flexibilidad y movilidad')" class="example-btn p-3 rounded-lg text-left">
+                        <i class="fas fa-child text-gold text-sm mb-1"></i>
+                        <p class="text-white text-xs font-bold">Movilidad</p>
+                        <p class="text-gray-500 text-[10px]">Más flexible</p>
+                    </button>
+                </div>
+
+                <!-- Input personalizado -->
+                <div class="relative">
+                    <input type="text" id="custom-goal" class="w-full p-4 rounded-xl bg-black/50 border border-gray-700 text-white text-sm focus:border-gold focus:outline-none transition" placeholder="O escribe tu propio objetivo...">
+                    <p class="text-[9px] text-gray-600 mt-2 text-center"><i class="fas fa-lightbulb text-yellow-500 mr-1"></i> Tip: Objetivos claros = Mayor probabilidad de éxito</p>
+                </div>
+            </div>
+
+            <!-- Botón Continuar -->
+            <button onclick="saveGoalAndContinue()" id="continue-btn" class="w-full py-4 bg-gradient-to-r from-gold to-yellow-600 rounded-xl text-black font-heading font-bold uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(212,175,55,0.4)] hover:shadow-[0_0_50px_rgba(212,175,55,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <i class="fas fa-rocket mr-2"></i> Comenzar Mi Transformación
+            </button>
+        </div>
+    </div>
+
+    <!-- ACCESS BLOCKED OVERLAY -->
+    <div id="access-blocked"></div>
+    <div id="access-expired"></div>
+
+    <!-- APP CONTENT -->
+    <div id="app-content" class="opacity-0 transition-opacity duration-1000">
+        
+        <!-- Header Hero -->
+        <div class="relative h-56 w-full overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-40"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+            
+            <div class="absolute top-6 right-6 flex flex-col items-end">
+                <h1 class="text-xl font-heading font-bold text-white leading-none brand-logo-client opacity-80">IN<span class="text-gold">FIT</span></h1>
+                <div class="mt-1 flex gap-2">
+                    <div class="px-2 py-0.5 bg-gold text-black text-[9px] font-bold uppercase rounded tracking-wider shadow-lg">Nivel 1</div>
+                    <div id="trial-badge" class="trial-badge px-2 py-0.5 bg-yellow-500/30 border border-yellow-500 text-yellow-300 text-[9px] font-bold uppercase rounded tracking-wider"><i class="fas fa-clock mr-1"></i>PRUEBA</div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-0 left-0 p-6 w-full">
+                <div class="flex items-center gap-2 mb-2">
+                    <div id="level-badge-status" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <p id="days-remaining-text" class="text-gray-400 text-[10px] uppercase tracking-widest font-bold">Calculando...</p>
+                </div>
+                <h1 class="text-3xl font-heading font-bold italic text-white uppercase leading-none">JUAN</h1>
+                
+                <!-- OBJETIVO DEL CICLO -->
+                <div id="goal-display" class="mt-3 goal-card p-3 rounded-lg hidden">
+                    <p class="text-[9px] text-gold uppercase tracking-widest mb-1"><i class="fas fa-flag mr-1"></i> Mi meta este ciclo</p>
+                    <p id="goal-text" class="text-white text-sm font-medium italic"></p>
+                </div>
+                
+                <div class="mt-4 w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                    <div id="cycle-progress-bar" class="bg-gold h-full w-0 transition-all duration-1000"></div>
+                </div>
+            </div>
+        </div>
+
+        <main class="px-4 py-6 max-w-md mx-auto">
+            
+            <section id="view-training" class="animate-fade-in">
+                <div class="flex overflow-x-auto gap-3 pb-6 scrollbar-hide" id="daySelector"></div>
+                <div id="workoutView" class="min-h-[400px]"></div>
+            </section>
+
+            <section id="view-diary" class="hidden animate-fade-in space-y-6">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-heading font-bold text-white uppercase italic">Modo Carrera</h2>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">Camino al Nivel 2</p>
+                </div>
+                
+                <div class="glass-panel p-5 rounded-xl text-center border-l-4 border-gold relative overflow-hidden">
+                    <div class="flex justify-between items-end mb-4 relative z-10">
+                        <span class="text-3xl font-heading font-bold text-gold" id="training-progress">0%</span>
+                        <span class="text-[10px] text-gray-400 uppercase">Cumplimiento</span>
+                    </div>
+                    
+                    <div class="bg-black/40 rounded-lg p-3 border border-white/5 mb-2">
+                        <p id="dynamic-motivation" class="text-xs text-gray-200 italic font-medium leading-relaxed">"Cargando motivación..."</p>
+                    </div>
+                    
+                    <p id="cycle-status-text" class="text-[9px] text-gray-500 text-right mt-2">Semana Actual</p>
+                </div>
+
+                <div id="training-grid" class="grid grid-cols-5 gap-3"></div>
+                
+                <div class="text-center mt-8 p-4 border border-dashed border-gray-800 rounded-xl">
+                    <p class="text-[9px] text-gray-500 uppercase mb-2">Próximo Hito</p>
+                    <button class="text-gray-600 font-heading text-lg uppercase flex items-center justify-center gap-2 w-full cursor-not-allowed opacity-50">
+                        <i class="fas fa-lock"></i> Nivel 2
+                    </button>
+                    <p class="text-[8px] text-gray-600 mt-2">Disponible al completar el ciclo</p>
+                </div>
+            </section>
+
+            <section id="view-pillars" class="hidden animate-fade-in space-y-4">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-heading font-bold text-white uppercase italic">Filosofía</h2>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">Nutrición & Mente</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border-l-2 border-green-500">
+                    <h3 class="font-heading text-lg text-white mb-2 uppercase flex items-center"><i class="fas fa-utensils text-green-500 mr-2 text-sm"></i> Fuel / Nutrición</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">La nutrición adecuada es el 70% - 80 % de tus resultados.
+Come alimentos reales y evita procesados.</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl border-l-2 border-blue-500">
+                    <h3 class="font-heading text-lg text-white mb-2 uppercase flex items-center"><i class="fas fa-battery-full text-blue-500 mr-2 text-sm"></i> Recovery</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">El descanso es tan vital como el entrenamiento. Prioriza 7-9 horas de sueño de calidad, hidrátate constantemente y mantén una nutrición adecuada rica en proteínas y baja en grasas saturadas para la recuperación muscular y el desarrollo de definición extrema.</p>
+                </div>
+            </section>
+        </main>
+        
+        <div class="nav-dock">
+            <button onclick="switchView('training')" id="btn-training" class="dock-item active"><i class="fas fa-dumbbell"></i> Entreno</button>
+            <button onclick="switchView('diary')" id="btn-diary" class="dock-item"><i class="fas fa-calendar-alt"></i> Diario</button>
+            <button onclick="switchView('pillars')" id="btn-pillars" class="dock-item"><i class="fas fa-book-open"></i> Filosofía</button>
+        </div>
+    </div>
+
+    <script>
+        const plan = {"meta":{"nombre":"JUAN","telefono":"5535766379","fechaInicio":"2026-02-22","nivel":1,"lugar":"Commercial Gym","accessType":"trial","generatedDate":"2026-02-22T21:20:40.373Z"},"contenido":{"frecuencia":"4 Días / Semana","estrategia":"Fundamentos Hipertróficos: Técnica Pura y Volumen Progresivo para Definición","promo":"LA DISCIPLINA ES EL PUENTE ENTRE METAS Y LOGROS.","nutricion":"La nutrición adecuada es el 70% - 80 % de tus resultados.\nCome alimentos reales y evita procesados.","descanso":"El descanso es tan vital como el entrenamiento. Prioriza 7-9 horas de sueño de calidad, hidrátate constantemente y mantén una nutrición adecuada rica en proteínas y baja en grasas saturadas para la recuperación muscular y el desarrollo de definición extrema.","calentamiento":""},"dias":[{"id":"day-1771795218614-0","label":"Lunes","focus":"Pecho y Tríceps","exercises":[{"id":"ex-1771795218614-leuda","name":"Press Banca con Mancuernas","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=dumbbell%20bench%20press%20technique"},{"id":"ex-1771795218614-jxf2i","name":"Press Inclinado con Mancuernas","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=incline%20dumbbell%20press%20form"},{"id":"ex-1771795218614-txo2h","name":"Aperturas en Pec Deck","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=pec%20deck%20fly%20machine%20form"},{"id":"ex-1771795218614-82e5g","name":"Extensiones de Tríceps con Cuerda","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=rope%20pushdown%20technique"},{"id":"ex-1771795218614-cyan0","name":"Copa a Dos Manos (Extensión de Tríceps sobre la cabeza)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=overhead%20dumbbell%20extension%20form"}]},{"id":"day-1771795218614-1","label":"Martes","focus":"Espalda y Bíceps","exercises":[{"id":"ex-1771795218614-b8fyl","name":"Jalones al Pecho (agarre neutro o normal)","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=lat%20pulldown%20technique"},{"id":"ex-1771795218614-v7gol","name":"Remo Sentado en Máquina (agarre cerrado)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20cable%20row%20form"},{"id":"ex-1771795218614-enol3","name":"Hiperextensiones (sin peso)","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=hyperextension%20exercise%20form"},{"id":"ex-1771795218614-i346d","name":"Curl de Bíceps con Barra","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=barbell%20curl%20technique"},{"id":"ex-1771795218614-eph2h","name":"Curl Predicador con Mancuerna","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=dumbbell%20preacher%20curl%20form"}]},{"id":"day-1771795218614-2","label":"Jueves","focus":"Hombros y Trapecio","exercises":[{"id":"ex-1771795218614-iqe8p","name":"Press Militar con Mancuernas Sentado","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20dumbbell%20overhead%20press%20form"},{"id":"ex-1771795218614-d79q9","name":"Elevaciones Laterales con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20lateral%20raise%20technique"},{"id":"ex-1771795218614-nb8ht","name":"Face Pulls (para deltoides posteriores y postura)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=face%20pulls%20exercise%20form"},{"id":"ex-1771795218614-38xv3","name":"Encogimientos con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20shrugs%20technique"}]},{"id":"day-1771795218614-3","label":"Sábado","focus":"Piernas y Abdominales","exercises":[{"id":"ex-1771795218614-iuv0u","name":"Prensa de Piernas","sets":"4","reps":"10-12","url":"https://www.youtube.com/results?search_query=leg%20press%20machine%20form"},{"id":"ex-1771795218614-i0npq","name":"Extensiones de Cuádriceps","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20extension%20machine%20technique"},{"id":"ex-1771795218614-z6pxl","name":"Curl Femoral Tumbado","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=lying%20leg%20curl%20machine%20form"},{"id":"ex-1771795218614-otsbt","name":"Elevaciones de Gemelos Sentado","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=seated%20calf%20raise%20technique"},{"id":"ex-1771795218614-ka1i8","name":"Crunch en Máquina","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=machine%20crunch%20exercise%20form"},{"id":"ex-1771795218614-e4oun","name":"Plancha","sets":"3","reps":"30-45 segundos","url":"https://www.youtube.com/results?search_query=plank%20exercise%20form"}]}]};
+        const IS_TRIAL_MODE = plan.meta.accessType === 'trial';
+        const TRIAL_HOURS = 24;
+        const REGISTERED_PHONE = "5535766379";
+        
+        const CLIENT_ID = plan.meta.nombre.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + REGISTERED_PHONE.slice(-4);
+        const DEVICE_KEY = 'infit_device_' + CLIENT_ID;
+        const TRIAL_START_KEY = 'infit_trial_' + CLIENT_ID;
+        const GOAL_KEY = 'infit_goal_' + CLIENT_ID;
+        
+        let selectedGoal = '';
+        let activeDayIdx = 0;
+        
+        const startDate = new Date(plan.meta.fechaInicio);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 29);
+        
+        const today = new Date();
+        const diffTime = Math.abs(today - startDate);
+        const dayOfCycle = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const isExpired = dayOfCycle > 30;
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAv1BfTCiQWgPXvtpMW14RdhbLyY4yGtiY",
+            authDomain: "infit-reto.firebaseapp.com",
+            databaseURL: "https://infit-reto-default-rtdb.firebaseio.com",
+            projectId: "infit-reto",
+            storageBucket: "infit-reto.firebasestorage.app",
+            messagingSenderId: "881118508637",
+            appId: "1:881118508637:web:26d5487e848aa4cd2d7fb4"
+        };
+        let db;
+        let userId; 
+        let trainingData = Array(30).fill(false);
+
+        // --- FUNCIONES DE SEGURIDAD ---
+        function generateDeviceFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = "top";
+            ctx.font = "14px 'Arial'";
+            ctx.fillText("fingerprint", 2, 2);
+            const fingerprint = [navigator.userAgent, navigator.language, screen.width + 'x' + screen.height, new Date().getTimezoneOffset(), canvas.toDataURL()].join('|');
+            let hash = 0;
+            for (let i = 0; i < fingerprint.length; i++) {
+                const char = fingerprint.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return 'device_' + Math.abs(hash).toString(36);
+        }
+
+        function getStoredDeviceId() { return localStorage.getItem(DEVICE_KEY); }
+        function registerDevice() {
+            const deviceId = generateDeviceFingerprint();
+            localStorage.setItem(DEVICE_KEY, deviceId);
+            return deviceId;
+        }
+        function isAuthorizedDevice() {
+            const storedId = getStoredDeviceId();
+            if (!storedId) return null;
+            const currentId = generateDeviceFingerprint();
+            return storedId === currentId;
+        }
+        function normalizePhone(phone) { return phone.replace(/\D/g, ''); }
+
+        // --- INICIALIZACIÓN ---
+        document.getElementById('unlock-btn').addEventListener('click', verifyAndUnlock);
+        document.getElementById('phone-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('pass-input').focus(); });
+        document.getElementById('pass-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') verifyAndUnlock(); });
+
+        // LLAVE MAESTRA DEL ENTRENADOR - Cambiar por tu clave personalizada
+        const MASTER_KEY = "INFIT2025PRO";
+        
+        function verifyAndUnlock() {
+            const phoneInput = normalizePhone(document.getElementById('phone-input').value);
+            const passInput = document.getElementById('pass-input').value.toUpperCase().trim();
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.classList.add('hidden');
+            
+            // VERIFICACIÓN DE LLAVE MAESTRA (Solo para entrenador)
+            const isMasterAccess = passInput === MASTER_KEY;
+            
+            if (isMasterAccess) {
+                // ACCESO ENTRENADOR: Omite verificación de teléfono y dispositivo
+                console.log('🔓 Acceso de entrenador autorizado');
+                unlockApp();
+                return;
+            }
+            
+            // VERIFICACIÓN NORMAL PARA CLIENTES
+            if (phoneInput !== REGISTERED_PHONE) {
+                errorMsg.innerHTML = '<i class="fas fa-phone-slash mr-1"></i> Teléfono no registrado. Contacta a tu entrenador.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            
+            const firstName = plan.meta.nombre.trim().split(" ")[0].toUpperCase();
+            const correctPass = firstName + new Date().getFullYear();
+            
+            if (passInput !== correctPass) {
+                errorMsg.innerHTML = '<i class="fas fa-key mr-1"></i> Contraseña incorrecta';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            
+            // VERIFICACIÓN DE DISPOSITIVO (Solo para clientes)
+            const deviceStatus = isAuthorizedDevice();
+            
+            if (deviceStatus === null) {
+                // Primer acceso del cliente - Registrar dispositivo
+                registerDevice();
+                if (IS_TRIAL_MODE) { localStorage.setItem(TRIAL_START_KEY, new Date().toISOString()); }
+                showWelcomeScreen();
+            } else if (deviceStatus === true) {
+                // Mismo dispositivo - Acceso permitido
+                unlockApp();
+            } else {
+                // Dispositivo diferente - BLOQUEADO
+                showDeviceBlocked();
+            }
+        }
+
+        // --- PANTALLA DE BIENVENIDA ---
+        function showWelcomeScreen() {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('welcome-screen').style.display = 'flex';
+            
+            // Verificar si ya tiene objetivo guardado
+            const existingGoal = localStorage.getItem(GOAL_KEY);
+            if (existingGoal) {
+                document.getElementById('custom-goal').value = existingGoal;
+                selectedGoal = existingGoal;
+                document.getElementById('continue-btn').disabled = false;
+            }
+        }
+
+        function selectGoal(btn, goalText) {
+            // Quitar selección previa
+            document.querySelectorAll('.example-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedGoal = goalText;
+            document.getElementById('custom-goal').value = '';
+            document.getElementById('continue-btn').disabled = false;
+        }
+
+        // Listener para input personalizado
+        document.getElementById('custom-goal')?.addEventListener('input', function() {
+            if (this.value.trim().length > 5) {
+                selectedGoal = this.value.trim();
+                document.querySelectorAll('.example-btn').forEach(b => b.classList.remove('selected'));
+                document.getElementById('continue-btn').disabled = false;
+            } else {
+                document.getElementById('continue-btn').disabled = !selectedGoal;
+            }
+        });
+
+        function saveGoalAndContinue() {
+            if (!selectedGoal) return;
+            
+            localStorage.setItem(GOAL_KEY, selectedGoal);
+            
+            // Animación de transición
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 }, colors: ['#D4AF37', '#FFFFFF'] });
+            
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcome-screen').style.display = 'none';
+                unlockApp();
+            }, 500);
+        }
+
+        function unlockApp() {
+            const content = document.getElementById('app-content');
+            userId = plan.meta.nombre.toLowerCase().replace(/[^a-z0-9]/g, '');
+            
+            initFirebase();
+            updateLevelUI();
+            displayGoal();
+            setDynamicMotivation();
+
+            content.classList.remove('opacity-0');
+            checkAccessExpiration();
+        }
+
+        function displayGoal() {
+            const goal = localStorage.getItem(GOAL_KEY);
+            if (goal) {
+                document.getElementById('goal-display').classList.remove('hidden');
+                document.getElementById('goal-text').textContent = goal;
+            }
+        }
+
+        function showDeviceBlocked() {
+            const blocked = document.getElementById('access-blocked');
+            blocked.innerHTML = `
+                <div class="relative">
+                    <div class="absolute inset-0 bg-red-500 blur-[60px] opacity-20 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
+                            <i class="fas fa-ban text-4xl text-red-500"></i>
+                        </div>
+                        <h2 class="text-2xl font-heading font-bold text-white uppercase italic mb-2">Acceso Bloqueado</h2>
+                        <p class="text-red-400 text-sm mb-6">Este plan ya está activo en otro dispositivo</p>
+                        <div class="glass-panel p-5 rounded-xl max-w-sm mb-6 text-left border-l-4 border-red-500">
+                            <h3 class="text-white font-bold mb-2"><i class="fas fa-shield-alt text-red-400 mr-2"></i>Por seguridad</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">Tu rutina está protegida y solo puede accederse desde un dispositivo autorizado. Si cambiaste de dispositivo, contacta a tu entrenador.</p>
+                        </div>
+                        <div class="bg-gray-900 p-4 rounded-xl max-w-sm">
+                            <p class="text-gray-500 text-xs mb-2">¿Necesitas ayuda?</p>
+                            <p class="text-gold text-sm font-bold"><i class="fas fa-headset mr-1"></i> Contacta a tu entrenador</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            blocked.style.display = 'flex';
+        }
+
+        function checkAccessExpiration() {
+            if (IS_TRIAL_MODE) {
+                const trialStartStr = localStorage.getItem(TRIAL_START_KEY);
+                if (trialStartStr) {
+                    const trialStart = new Date(trialStartStr);
+                    const hoursPassed = (new Date() - trialStart) / (1000 * 60 * 60);
+                    if (hoursPassed >= TRIAL_HOURS) { showTrialExpiredOverlay(); return; }
+                    updateTrialBadge(TRIAL_HOURS - hoursPassed);
+                }
+            } else {
+                if (isExpired) { showLevelCompleteOverlay(); }
+            }
+        }
+
+        function showTrialExpiredOverlay() {
+            const overlay = document.getElementById('access-expired');
+            overlay.innerHTML = `
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gold blur-[80px] opacity-20 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center shadow-[0_0_40px_rgba(212,175,55,0.5)]">
+                            <i class="fas fa-lock text-4xl text-black"></i>
+                        </div>
+                        <h2 class="text-3xl font-heading font-bold text-white uppercase italic mb-2">¡Tiempo de Prueba Finalizado!</h2>
+                        <p class="text-gold text-sm uppercase tracking-widest mb-6">Tu vista previa de 24 horas ha expirado</p>
+                        <div class="glass-panel p-6 rounded-xl max-w-sm mb-8 text-left border-l-4 border-gold">
+                            <h3 class="text-white font-bold mb-2 text-lg"><i class="fas fa-star text-gold mr-2"></i>¿Te gustó lo que viste?</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">Este plan fue diseñado específicamente para ti. Únete como cliente activo.</p>
+                        </div>
+                        <button onclick="contactForSubscription()" class="w-full max-w-sm py-4 bg-gradient-to-r from-gold to-yellow-600 rounded-xl text-black font-heading font-bold uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+                            <i class="fas fa-crown mr-2"></i> Activar Mi Plan Completo
+                        </button>
+                    </div>
+                </div>
+            `;
+            overlay.style.display = 'flex';
+        }
+
+        function showLevelCompleteOverlay() {
+            const overlay = document.getElementById('access-expired');
+            overlay.innerHTML = `
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gold blur-[80px] opacity-30 rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center shadow-[0_0_40px_rgba(212,175,55,0.5)]">
+                            <i class="fas fa-trophy text-4xl text-black"></i>
+                        </div>
+                        <h2 class="text-3xl font-heading font-bold text-white uppercase italic mb-2">¡Felicidades, Campeón!</h2>
+                        <p class="text-gold text-sm uppercase tracking-widest mb-6">Has completado el Nivel 1</p>
+                        <div class="glass-panel p-6 rounded-xl max-w-sm mb-4 text-left border-l-4 border-gold">
+                            <h3 class="text-white font-bold mb-2 text-lg"><i class="fas fa-arrow-up text-gold mr-2"></i>Siguiente: Nivel 2</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">Tu cuerpo está listo para el siguiente desafío.</p>
+                        </div>
+                        <button onclick="contactForUpgrade()" class="w-full max-w-sm py-4 bg-gradient-to-r from-gold to-yellow-600 rounded-xl text-black font-heading font-bold uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+                            <i class="fas fa-rocket mr-2"></i> Desbloquear Nivel 2
+                        </button>
+                        <button onclick="closeExpired()" class="mt-4 text-gray-500 text-xs uppercase hover:text-white"><i class="fas fa-history mr-1"></i> Ver historial</button>
+                    </div>
+                </div>
+            `;
+            overlay.style.display = 'flex';
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#D4AF37', '#FFFFFF'] });
+        }
+
+        function updateTrialBadge(hoursRemaining) {
+            const badge = document.getElementById('trial-badge');
+            if (badge) {
+                const hours = Math.floor(hoursRemaining);
+                const minutes = Math.floor((hoursRemaining - hours) * 60);
+                badge.innerHTML = `<i class="fas fa-clock mr-1"></i>${hours}h ${minutes}m`;
+            }
+        }
+
+        function closeExpired() { document.getElementById('access-expired').style.display = 'none'; }
+        function contactForSubscription() { Swal.fire({ title: '<span class="text-gold">¡Excelente!</span>', html: '<p class="text-gray-300">Contacta a tu entrenador para activar tu plan.</p>', confirmButtonText: 'ENTENDIDO', confirmButtonColor: '#D4AF37', background: '#111', color: '#fff' }); }
+        function contactForUpgrade() { Swal.fire({ title: '<span class="text-gold">Siguiente Nivel</span>', html: '<p class="text-gray-300">Solicita tu actualización al Nivel 2</p>', confirmButtonText: 'CONTACTAR ENTRENADOR', confirmButtonColor: '#D4AF37', background: '#111', color: '#fff' }); }
+
+        function updateLevelUI() {
+            const remaining = 30 - dayOfCycle;
+            const bar = document.getElementById('cycle-progress-bar');
+            const statusText = document.getElementById('days-remaining-text');
+            const diaryText = document.getElementById('cycle-status-text');
+            const badge = document.getElementById('level-badge-status');
+            
+            if (!IS_TRIAL_MODE) {
+                const endDateBadge = document.getElementById('end-date-badge');
+                if (endDateBadge) {
+                    const options = { day: 'numeric', month: 'short' };
+                    const dateStr = endDate.toLocaleDateString('es-ES', options).toUpperCase().replace('.', '');
+                    endDateBadge.innerText = `TERMINA: ${dateStr}`;
+                }
+            }
+
+            let cyclePercent = (dayOfCycle / 30) * 100;
+            if(cyclePercent > 100) cyclePercent = 100;
+            bar.style.width = `${cyclePercent}%`;
+
+            if (IS_TRIAL_MODE) {
+                statusText.innerText = "MODO PRUEBA ACTIVO";
+                statusText.classList.add('text-yellow-400');
+                diaryText.innerText = "Vista previa de tu plan personalizado.";
+                badge.className = "w-2 h-2 rounded-full bg-yellow-400 animate-pulse";
+            } else if (isExpired) {
+                statusText.innerText = "CICLO COMPLETADO";
+                statusText.classList.add('text-gold');
+                diaryText.innerText = "Ciclo finalizado.";
+                badge.className = "w-2 h-2 rounded-full bg-gold animate-pulse";
+            } else if (remaining < 0) {
+                 statusText.innerText = "ESPERANDO INICIO";
+                 bar.style.width = "0%";
+            } else {
+                statusText.innerText = `DÍA ${dayOfCycle} DE 30`;
+                diaryText.innerText = `Estás en el día ${dayOfCycle} del ciclo.`;
+                badge.className = "w-2 h-2 rounded-full bg-green-500 animate-pulse";
+            }
+        }
+        
+        function setDynamicMotivation() {
+            const msgEl = document.getElementById('dynamic-motivation');
+            let week = Math.min(Math.ceil(dayOfCycle / 7), 4);
+            const messages = {
+                1: "El primer paso siempre es el más difícil. Estás construyendo Tu Mejor Versión.",
+                2: "La motivación te inicia, el hábito te mantiene.",
+                3: "Aquí es donde la mayoría renuncia. Tú eres diferente.",
+                4: "¡Recta final! Cierra fuerte para desbloquear el siguiente nivel."
+            };
+            msgEl.innerText = messages[week];
+        }
+
+        function initFirebase() {
+            try {
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                loadData();
+            } catch (e) { console.error("Firebase Error:", e); }
+        }
+
+        function loadData() {
+            if (db && userId) {
+                db.ref('training/' + userId + '/level_' + plan.meta.nivel).once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && data.progress) trainingData = data.progress;
+                    renderGrid();
+                    updateStats();
+                });
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('training-grid');
+            grid.innerHTML = '';
+            for(let i=0; i<30; i++) {
+                const completed = trainingData[i];
+                const isToday = (i + 1) === dayOfCycle;
+                const dayDiv = document.createElement('div');
+                let classes = "day-check h-14 rounded-xl flex flex-col items-center justify-center border border-gray-800 bg-black/40 relative select-none";
+                if (isToday) classes += " today-border";
+                if (completed) { classes += " completed"; dayDiv.innerHTML = `<i class="fas fa-check text-xl"></i>`; }
+                else { dayDiv.innerHTML = `<span class="text-[8px] text-gray-500 font-bold uppercase tracking-wider">DÍA</span><span class="text-white font-heading text-lg font-bold">${i+1}</span>`; }
+                dayDiv.className = classes;
+                dayDiv.onclick = () => toggleDay(i);
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function toggleDay(index) {
+            const wasCompleted = trainingData[index];
+            trainingData[index] = !wasCompleted;
+            if (!wasCompleted) confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, colors: ['#D4AF37'] });
+            saveData();
+            renderGrid();
+            updateStats();
+        }
+
+        function saveData() {
+            if (db && userId) {
+                db.ref('training/' + userId + '/level_' + plan.meta.nivel).set({ progress: trainingData, lastUpdate: new Date().toISOString() });
+            }
+        }
+
+        function updateStats() {
+            const completedCount = trainingData.filter(Boolean).length;
+            const percentage = Math.round((completedCount / 30) * 100);
+            document.getElementById('training-progress').textContent = `${percentage}%`;
+        }
+
+        function switchView(viewName) {
+            ['training', 'diary', 'pillars'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`btn-${v}`).classList.remove('active');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            document.getElementById(`btn-${viewName}`).classList.add('active');
+        }
+
+        function renderSelector() {
+            const container = document.getElementById('daySelector');
+            container.innerHTML = plan.dias.map((d, i) => `
+                <button onclick="setDay(${i})" class="flex-shrink-0 w-16 h-16 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 ${i === activeDayIdx ? 'bg-gold text-black shadow-lg shadow-yellow-500/20 scale-105' : 'bg-white/5 text-gray-500 border border-white/5'}">
+                    <span class="text-[10px] font-bold uppercase">${d.label.substring(0,3)}</span>
+                    <span class="text-lg font-heading font-bold">${i + 1}</span>
+                </button>
+            `).join('');
+        }
+
+        function renderWorkout() {
+            const day = plan.dias[activeDayIdx];
+            const container = document.getElementById('workoutView');
+            let html = `
+                <div class="animate-fade-in pb-10">
+                    <div class="mb-6 flex justify-between items-baseline">
+                        <h2 class="text-2xl font-heading italic font-bold text-white uppercase gold-text">${day.focus}</h2>
+                        <span class="text-[10px] text-gray-500 uppercase tracking-widest">${day.exercises.length} MOVIMIENTOS</span>
+                    </div>
+                    <div class="bg-gradient-to-r from-yellow-900/20 to-transparent border-l-2 border-gold p-4 rounded-r-xl mb-6">
+                        <h3 class="text-gold font-heading text-sm uppercase mb-1 flex items-center"><i class="fas fa-fire-alt mr-2"></i> Activación</h3>
+                        <p class="text-[10px] text-gray-400 leading-relaxed">Inicia con 5-10 min de cardio ligero + 2 series de aproximación.</p>
+                    </div>
+                    <div class="space-y-3">
+            `;
+            day.exercises.forEach((ex, idx) => {
+                html += `
+                    <div class="card-exercise p-4 rounded-xl flex items-center justify-between group">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-sm font-heading font-bold text-gold">${idx + 1}</div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm uppercase">${ex.name}</h3>
+                                <div class="flex gap-3 mt-1.5">
+                                    <div class="flex items-center text-[10px] text-gray-400 bg-black/50 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-layer-group text-gold mr-1.5"></i> ${ex.sets}</div>
+                                    <div class="flex items-center text-[10px] text-gray-400 bg-black/50 px-2 py-0.5 rounded border border-white/5"><i class="fas fa-dumbbell text-gold mr-1.5"></i> ${ex.reps}</div>
+                                </div>
+                            </div>
+                        </div>
+                        ${ex.url ? `<a href="${ex.url}" target="_blank" class="w-10 h-10 rounded-full bg-gold flex items-center justify-center text-black shadow-lg shadow-yellow-500/20 active:scale-90 transition-transform"><i class="fas fa-play text-xs ml-0.5"></i></a>` : ''}
+                    </div>
+                `;
+            });
+            html += `</div>
+                    <div class="bg-gradient-to-r from-blue-900/20 to-transparent border-l-2 border-blue-500 p-4 rounded-r-xl mt-6">
+                        <h3 class="text-blue-400 font-heading text-sm uppercase mb-1 flex items-center"><i class="fas fa-snowflake mr-2"></i> Enfriamiento</h3>
+                        <p class="text-[10px] text-gray-400 leading-relaxed">Finaliza con 5-10 min de estiramientos estáticos.</p>
+                    </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        function setDay(idx) { activeDayIdx = idx; renderSelector(); renderWorkout(); }
+        window.onload = () => { renderSelector(); renderWorkout(); }
+    </script>
+</body>
+</html>
