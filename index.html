@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JUAN - NIVEL 1</title>
+    <title>ANGELICA - NIVEL 1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
@@ -18,8 +18,11 @@
                 extend: {
                     colors: { gold: '#D4AF37', dark: '#050505', panel: '#151515' },
                     fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Oswald', 'sans-serif'] },
-                    animation: { 'fade-in': 'fadeIn 0.8s ease-out forwards', 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' },
-                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                    animation: { 'fade-in': 'fadeIn 0.8s ease-out forwards', 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite', 'float': 'float 3s ease-in-out infinite' },
+                    keyframes: { 
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-10px)' } }
+                    }
                 }
             }
         }
@@ -31,9 +34,113 @@
         .gold-text { background: linear-gradient(to right, #D4AF37, #F1D780, #D4AF37); -webkit-background-clip: text; color: transparent; background-size: 200% auto; animation: shine 3s linear infinite; }
         @keyframes shine { to { background-position: 200% center; } }
         
-        #lock-screen { position: fixed; inset: 0; z-index: 9999; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; padding: 20px; }
+        /* ===== PANTALLA DE ACCESO PULIDA ===== */
+        #lock-screen { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 9999; 
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%);
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            transition: opacity 0.6s ease, transform 0.6s ease; 
+            padding: 24px;
+            overflow: hidden;
+        }
+        
+        .lock-bg-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .lock-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .lock-card {
+            background: linear-gradient(145deg, rgba(26,26,26,0.9), rgba(15,15,15,0.95));
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 24px;
+            padding: 40px 32px;
+            max-width: 380px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 60px rgba(212,175,55,0.1);
+        }
+        
+        .lock-input-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        
+        .lock-input {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.25rem;
+            text-align: center;
+            width: 100%;
+            padding: 16px 20px;
+            letter-spacing: 3px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .lock-input:focus {
+            border-color: #D4AF37;
+            box-shadow: 0 0 20px rgba(212,175,55,0.3);
+            background: rgba(0,0,0,0.7);
+        }
+        
+        .lock-input::placeholder {
+            color: #666;
+            letter-spacing: 1px;
+        }
+        
+        .lock-btn {
+            background: linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%);
+            color: #000;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 16px 32px;
+            border-radius: 16px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(212,175,55,0.3);
+        }
+        
+        .lock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(212,175,55,0.4);
+        }
+        
+        .lock-btn:active {
+            transform: translateY(0);
+        }
+        
+        .lock-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
         #welcome-screen { position: fixed; inset: 0; z-index: 9998; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; }
-        .lock-input { background: transparent; border-bottom: 2px solid #333; color: #D4AF37; font-family: 'Oswald'; font-size: 1.5rem; text-align: center; width: 100%; max-width: 280px; outline: none; letter-spacing: 2px; }
         
         #access-blocked, #access-expired { position: fixed; inset: 0; z-index: 9950; background: rgba(0,0,0,0.97); backdrop-filter: blur(15px); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
         
@@ -60,50 +167,74 @@
         
         .security-badge { background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1)); border: 1px solid rgba(34,197,94,0.3); }
         .goal-card { background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05)); border: 1px solid rgba(212, 175, 55, 0.3); }
+        
+        .level-badge-mini {
+            background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.1));
+            border: 1px solid rgba(212,175,55,0.4);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
     </style>
 </head>
 <body class="min-h-screen pb-24 antialiased selection:bg-gold selection:text-black overflow-x-hidden">
 
     <!-- DATA MODEL -->
-    <script id="infit-data-model" type="application/json">{"meta":{"nombre":"JUAN","telefono":"5535766379","fechaInicio":"2026-02-23","nivel":1,"lugar":"Commercial Gym","accessType":"full","generatedDate":"2026-02-23T18:13:26.765Z"},"contenido":{"frecuencia":"4 Días / Semana","estrategia":"Adaptación Arnold: Enfoque muscular y densidad metabólica para Nivel 1","promo":"LA DISCIPLINA ES EL PUENTE ENTRE METAS Y LOGROS.","nutricion":"La nutrición adecuada es el 70% - 80 % de tus resultados.\nCome alimentos reales y evita procesados.","descanso":"Es fundamental para la recuperación y el crecimiento muscular. Para 'Definición Extrema', mantén los descansos entre series a 60-90 segundos para maximizar el gasto calórico y la densidad del entrenamiento, permitiendo que Juan mantenga la intensidad y el enfoque en el esfuerzo.","calentamiento":""},"dias":[{"id":"day-1771870384778-0","label":"Lunes","focus":"Pecho y Espalda","exercises":[{"id":"ex-1771870384779-1mf8p","name":"Press Banca con Barra","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=barbell%20bench%20press%20technique"},{"id":"ex-1771870384779-7rte7","name":"Remo con Barra Pendlay","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=pendlay%20row%20technique"},{"id":"ex-1771870384779-w81bm","name":"Press Inclinado con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=incline%20dumbbell%20press%20technique"},{"id":"ex-1771870384779-db8am","name":"Jalón al Pecho en Máquina","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=lat%20pulldown%20machine%20technique"},{"id":"ex-1771870384779-2dy37","name":"Aperturas en Polea Alta","sets":"3","reps":"15","url":"https://www.youtube.com/results?search_query=cable%20fly%20high%20to%20low%20technique"},{"id":"ex-1771870384779-6rh6t","name":"Remo en Máquina (Agarre Neutro)","sets":"3","reps":"15","url":"https://www.youtube.com/results?search_query=seated%20cable%20row%20neutral%20grip%20technique"}]},{"id":"day-1771870384779-1","label":"Martes","focus":"Hombros y Brazos","exercises":[{"id":"ex-1771870384779-y37h7","name":"Press Militar con Mancuernas Sentado","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20dumbbell%20shoulder%20press%20technique"},{"id":"ex-1771870384779-q3yd5","name":"Elevaciones Laterales con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20lateral%20raise%20technique"},{"id":"ex-1771870384779-z3cqc","name":"Curl de Bíceps con Barra Z","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=ez%20bar%20bicep%20curl%20technique"},{"id":"ex-1771870384779-fzlox","name":"Extensiones de Tríceps en Polea Alta (Cuerda)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=rope%20triceps%20pushdown%20technique"},{"id":"ex-1771870384779-ty44a","name":"Face Pulls","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=face%20pull%20exercise%20technique"},{"id":"ex-1771870384779-raw41","name":"Curl Martillo con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20hammer%20curl%20technique"},{"id":"ex-1771870384779-5zdrh","name":"Extensiones de Tríceps por Encima de la Cabeza con Mancuerna","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=overhead%20dumbbell%20triceps%20extension%20technique"}]},{"id":"day-1771870384779-2","label":"Miércoles","focus":"Piernas y Pantorrillas","exercises":[{"id":"ex-1771870384779-ju2iz","name":"Sentadilla con Barra (Énfasis en la técnica)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=barbell%20squat%20technique%20beginner"},{"id":"ex-1771870384779-7o92u","name":"Prensa de Piernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20press%20machine%20technique"},{"id":"ex-1771870384779-xxnvl","name":"Curl de Femoral Sentado","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=seated%20hamstring%20curl%20technique"},{"id":"ex-1771870384779-e8oj3","name":"Extensiones de Cuádriceps","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20extension%20machine%20technique"},{"id":"ex-1771870384779-a4ny1","name":"Elevación de Talones de Pie en Máquina","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=standing%20calf%20raise%20machine%20technique"},{"id":"ex-1771870384779-5ccmt","name":"Zancadas con Mancuernas","sets":"3 por pierna","reps":"10-12 por pierna","url":"https://www.youtube.com/results?search_query=dumbbell%20lunges%20technique"}]},{"id":"day-1771870384779-3","label":"Jueves","focus":"Cuerpo Completo: Refuerzo y Acondicionamiento","exercises":[{"id":"ex-1771870384779-ur88f","name":"Dominadas Asistidas en Máquina o Banda","sets":"3","reps":"8-12","url":"https://www.youtube.com/results?search_query=assisted%20pull%20up%20machine%20technique"},{"id":"ex-1771870384779-68sj2","name":"Flexiones en el Suelo o con Rodillas apoyadas","sets":"3","reps":"AMRAP (Máximas repeticiones con buena forma)","url":"https://www.youtube.com/results?search_query=push%20up%20technique%20beginner"},{"id":"ex-1771870384779-zwun7","name":"Remo en Polea Baja Unilateral","sets":"3 por lado","reps":"12-15 por lado","url":"https://www.youtube.com/results?search_query=single%20arm%20cable%20row%20technique"},{"id":"ex-1771870384779-kqsv9","name":"Press de Hombros con Mancuernas de Pie (ligero)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=standing%20dumbbell%20shoulder%20press%20technique"},{"id":"ex-1771870384779-235y6","name":"Plancha (Core)","sets":"3","reps":"30-60 segundos de mantenimiento","url":"https://www.youtube.com/results?search_query=plank%20exercise%20technique"},{"id":"ex-1771870384779-gllkj","name":"Crunch Abdominal en Máquina","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=ab%20machine%20crunch%20technique"}]}]}</script>
+    <script id="infit-data-model" type="application/json">{"meta":{"nombre":"ANGELICA","telefono":"4423639627","fechaInicio":"2026-02-24","nivel":1,"lugar":"Commercial Gym","accessType":"trial","generatedDate":"2026-02-24T17:04:33.975Z"},"contenido":{"frecuencia":"4 Días / Semana","estrategia":"Acondicionamiento Muscular Integral y Gasto Calórico Elevado","promo":"LA DISCIPLINA ES EL PUENTE ENTRE METAS Y LOGROS.","nutricion":"La nutrición adecuada es el 70% - 80 % de tus resultados. \nEn INFIT también te podemos apoyar con tu plan de alimentación \n","descanso":"Mantén el descanso entre series de 60-90 segundos para maximizar la quema de grasa y la recuperación. En el día 4, busca transiciones rápidas entre ejercicios.","calentamiento":""},"dias":[{"id":"day-1771952573531-0","label":"Lunes","focus":"Pecho y Espalda","exercises":[{"id":"ex-1771952573532-6dmtf","name":"Press de Banca con Mancuernas (Plano)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=dumbbell%20bench%20press%20technique"},{"id":"ex-1771952573532-30aa8","name":"Aperturas en Máquina (Pec Deck)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=pec%20deck%20fly%20machine%20technique"},{"id":"ex-1771952573532-wchfc","name":"Jalón al Pecho en Máquina (Agarre neutro)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=neutral%20grip%20lat%20pulldown%20technique"},{"id":"ex-1771952573532-yr81k","name":"Remo Sentado en Máquina (Agarre estrecho)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20cable%20row%20narrow%20grip%20technique"},{"id":"ex-1771952573532-8ajfy","name":"Hiperextensiones","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=back%20extension%20hyperextension%20technique"}]},{"id":"day-1771952573532-1","label":"Martes","focus":"Hombros y Brazos","exercises":[{"id":"ex-1771952573532-axmm6","name":"Press Militar con Mancuernas (Sentado)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20dumbbell%20shoulder%20press%20technique"},{"id":"ex-1771952573532-eff0c","name":"Elevaciones Laterales con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20lateral%20raise%20technique"},{"id":"ex-1771952573532-b7syz","name":"Face Pulls en Polea Alta","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=cable%20face%20pull%20technique"},{"id":"ex-1771952573532-xscxk","name":"Curl de Bíceps con Mancuernas (Alterno)","sets":"3","reps":"10-12 por brazo","url":"https://www.youtube.com/results?search_query=alternating%20dumbbell%20bicep%20curl%20technique"},{"id":"ex-1771952573532-iy76e","name":"Extensiones de Tríceps en Polea Alta (Pushdown)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=cable%20tricep%20pushdown%20technique"},{"id":"ex-1771952573532-k4iam","name":"Extensiones de Tríceps por encima de la cabeza con Mancuerna","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20overhead%20tricep%20extension%20technique"}]},{"id":"day-1771952573532-2","label":"Jueves","focus":"Piernas y Glúteos","exercises":[{"id":"ex-1771952573532-ulmmh","name":"Prensa de Piernas","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=leg%20press%20machine%20technique"},{"id":"ex-1771952573532-3i6iz","name":"Sentadilla Goblet","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=goblet%20squat%20technique"},{"id":"ex-1771952573532-fr7qb","name":"Curl de Femoral en Máquina","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=hamstring%20curl%20machine%20technique"},{"id":"ex-1771952573532-04s74","name":"Extensiones de Cuádriceps en Máquina","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20extension%20machine%20technique"},{"id":"ex-1771952573532-x32w6","name":"Puente de Glúteos (Glute Bridge)","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=glute%20bridge%20exercise%20technique"},{"id":"ex-1771952573532-7hyxz","name":"Elevación de Talones de pie","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=standing%20calf%20raise%20technique"}]},{"id":"day-1771952573532-3","label":"Viernes","focus":"Acondicionamiento Metabólico y Core","exercises":[{"id":"ex-1771952573532-cxhwa","name":"Saltos de Tijera (Jumping Jacks)","sets":"3","reps":"45-60s","url":"https://www.youtube.com/results?search_query=jumping%20jacks%20exercise%20technique"},{"id":"ex-1771952573532-kiawa","name":"Sentadilla con Peso Corporal","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=bodyweight%20squat%20technique"},{"id":"ex-1771952573532-z2t4u","name":"Flexiones (De rodillas si es necesario)","sets":"3","reps":"Máximas repeticiones (6-10)","url":"https://www.youtube.com/results?search_query=knee%20push%20ups%20technique"},{"id":"ex-1771952573532-ilcj7","name":"Remo Invertido (usando barra de Smith o TRX)","sets":"3","reps":"8-12","url":"https://www.youtube.com/results?search_query=inverted%20row%20smith%20machine%20technique"},{"id":"ex-1771952573532-zk1o7","name":"Plancha (Plank)","sets":"3","reps":"30-45s","url":"https://www.youtube.com/results?search_query=plank%20exercise%20technique"},{"id":"ex-1771952573532-39udg","name":"Crunch Bicicleta","sets":"3","reps":"15-20 por lado","url":"https://www.youtube.com/results?search_query=bicycle%20crunch%20exercise%20technique"}]}]}</script>
 
-    <!-- LOCK SCREEN (VERIFICACIÓN DE IDENTIDAD) -->
+    <!-- ===== PANTALLA DE ACCESO PULIDA (SOLO TELÉFONO) ===== -->
     <div id="lock-screen">
-        <div class="mb-8 text-center relative">
-            <div class="absolute inset-0 bg-gold blur-[60px] opacity-10 rounded-full"></div>
-            <h1 class="text-5xl font-heading font-bold text-white leading-none brand-logo-client relative z-10">
-                IN<span class="text-gold">FIT</span>
-            </h1>
-            <p class="text-xs text-gray-500 tracking-[0.4em] uppercase font-semibold mt-2">Nivel 1</p>
-            
-        </div>
+        <div class="lock-bg-pattern"></div>
+        <div class="lock-glow" style="top: 10%; left: -10%;"></div>
+        <div class="lock-glow" style="bottom: 10%; right: -10%; animation-delay: -2s;"></div>
         
-        <div class="security-badge rounded-lg px-4 py-2 mb-6 flex items-center gap-2">
-            <i class="fas fa-shield-alt text-green-400"></i>
-            <span class="text-green-400 text-[10px] uppercase tracking-wider font-bold">Acceso Protegido</span>
-        </div>
-        
-        <div class="w-full max-w-xs space-y-6">
-            <div>
-                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 text-center">
-                    <i class="fas fa-phone mr-1"></i> Ingresa tu teléfono
-                </label>
-                <input type="tel" id="phone-input" class="lock-input mb-2" placeholder="Ej: 5512345678" maxlength="15">
-                <p class="text-[9px] text-gray-600 text-center">El número registrado con tu entrenador</p>
+        <div class="lock-card">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center mb-4">
+                    <h1 class="text-5xl font-heading font-bold text-white leading-none brand-logo-client">
+                        IN<span class="text-gold">FIT</span>
+                    </h1>
+                </div>
+                <div class="level-badge-mini inline-flex items-center gap-2">
+                    <i class="fas fa-trophy text-gold text-xs"></i>
+                    <span class="text-gold text-xs font-bold uppercase tracking-wider">Nivel 1</span>
+                </div>
+                
+                <div class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full">
+                    <i class="fas fa-clock text-yellow-400 text-xs"></i>
+                    <span class="text-yellow-400 text-xs font-bold uppercase tracking-wider">Vista Previa 24h</span>
+                </div>
+                
             </div>
             
-            <div>
-                <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2 text-center">
-                    <i class="fas fa-key mr-1"></i> Contraseña: Nombre + Año
-                </label>
-                <input type="password" id="pass-input" class="lock-input mb-2" placeholder="Ej: VICTOR2025">
+            <!-- Badge de seguridad -->
+            <div class="security-badge rounded-xl px-4 py-3 mb-6 flex items-center justify-center gap-2">
+                <i class="fas fa-shield-alt text-green-400"></i>
+                <span class="text-green-400 text-xs uppercase tracking-wider font-bold">Acceso Protegido</span>
             </div>
             
-            <button id="unlock-btn" class="w-full py-3 bg-gold text-black font-heading font-bold uppercase tracking-widest rounded-lg hover:bg-white transition shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                <i class="fas fa-unlock mr-2"></i> Acceder
+            <!-- Mensaje de bienvenida -->
+            <div class="text-center mb-6">
+                <p class="text-gray-400 text-sm">Ingresa tu número de teléfono para acceder a tu plan de entrenamiento</p>
+            </div>
+            
+            <!-- Input de teléfono -->
+            <div class="lock-input-container">
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <i class="fas fa-phone text-gold text-sm"></i>
+                    <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Tu número de teléfono</label>
+                </div>
+                <input type="tel" id="phone-input" class="lock-input" placeholder="Ej: 5512345678" maxlength="20">
+                <p class="text-center text-[9px] text-gray-600 mt-2">El número que registraste con tu entrenador</p>
+            </div>
+            
+            <!-- Botón de acceso -->
+            <button id="unlock-btn" class="lock-btn">
+                <i class="fas fa-unlock mr-2"></i> Acceder a Mi Rutina
             </button>
             
-            <p id="error-msg" class="text-red-500 text-xs text-center hidden"></p>
+            <!-- Mensaje de error -->
+            <p id="error-msg" class="text-red-400 text-xs text-center mt-4 hidden"></p>
         </div>
     </div>
 
@@ -117,7 +248,7 @@
                     <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.5)]">
                         <i class="fas fa-hand-sparkles text-3xl text-black"></i>
                     </div>
-                    <h1 class="text-3xl font-heading font-bold text-white uppercase italic">¡Bienvenido, JUAN!</h1>
+                    <h1 class="text-3xl font-heading font-bold text-white uppercase italic">¡Bienvenido, ANGELICA!</h1>
                     <p class="text-gold text-sm mt-2">Tu plan de entrenamiento está listo</p>
                 </div>
             </div>
@@ -204,7 +335,7 @@
                 <h1 class="text-xl font-heading font-bold text-white leading-none brand-logo-client opacity-80">IN<span class="text-gold">FIT</span></h1>
                 <div class="mt-1 flex gap-2">
                     <div class="px-2 py-0.5 bg-gold text-black text-[9px] font-bold uppercase rounded tracking-wider shadow-lg">Nivel 1</div>
-                    <div id="end-date-badge" class="px-2 py-0.5 bg-black/50 border border-white/20 text-white text-[9px] font-bold uppercase rounded tracking-wider"></div>
+                    <div id="trial-badge" class="trial-badge px-2 py-0.5 bg-yellow-500/30 border border-yellow-500 text-yellow-300 text-[9px] font-bold uppercase rounded tracking-wider"><i class="fas fa-clock mr-1"></i>PRUEBA</div>
                 </div>
             </div>
 
@@ -213,7 +344,7 @@
                     <div id="level-badge-status" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <p id="days-remaining-text" class="text-gray-400 text-[10px] uppercase tracking-widest font-bold">Calculando...</p>
                 </div>
-                <h1 class="text-3xl font-heading font-bold italic text-white uppercase leading-none">JUAN</h1>
+                <h1 class="text-3xl font-heading font-bold italic text-white uppercase leading-none">ANGELICA</h1>
                 
                 <!-- OBJETIVO DEL CICLO -->
                 <div id="goal-display" class="mt-3 goal-card p-3 rounded-lg hidden">
@@ -271,12 +402,13 @@
                 </div>
                 <div class="glass-panel p-5 rounded-2xl border-l-2 border-green-500">
                     <h3 class="font-heading text-lg text-white mb-2 uppercase flex items-center"><i class="fas fa-utensils text-green-500 mr-2 text-sm"></i> Fuel / Nutrición</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">La nutrición adecuada es el 70% - 80 % de tus resultados.
-Come alimentos reales y evita procesados.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">La nutrición adecuada es el 70% - 80 % de tus resultados. 
+En INFIT también te podemos apoyar con tu plan de alimentación 
+</p>
                 </div>
                 <div class="glass-panel p-5 rounded-2xl border-l-2 border-blue-500">
                     <h3 class="font-heading text-lg text-white mb-2 uppercase flex items-center"><i class="fas fa-battery-full text-blue-500 mr-2 text-sm"></i> Recovery</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">Es fundamental para la recuperación y el crecimiento muscular. Para 'Definición Extrema', mantén los descansos entre series a 60-90 segundos para maximizar el gasto calórico y la densidad del entrenamiento, permitiendo que Juan mantenga la intensidad y el enfoque en el esfuerzo.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">Mantén el descanso entre series de 60-90 segundos para maximizar la quema de grasa y la recuperación. En el día 4, busca transiciones rápidas entre ejercicios.</p>
                 </div>
             </section>
         </main>
@@ -289,16 +421,19 @@ Come alimentos reales y evita procesados.</p>
     </div>
 
     <script>
-        const plan = {"meta":{"nombre":"JUAN","telefono":"5535766379","fechaInicio":"2026-02-23","nivel":1,"lugar":"Commercial Gym","accessType":"full","generatedDate":"2026-02-23T18:13:26.765Z"},"contenido":{"frecuencia":"4 Días / Semana","estrategia":"Adaptación Arnold: Enfoque muscular y densidad metabólica para Nivel 1","promo":"LA DISCIPLINA ES EL PUENTE ENTRE METAS Y LOGROS.","nutricion":"La nutrición adecuada es el 70% - 80 % de tus resultados.\nCome alimentos reales y evita procesados.","descanso":"Es fundamental para la recuperación y el crecimiento muscular. Para 'Definición Extrema', mantén los descansos entre series a 60-90 segundos para maximizar el gasto calórico y la densidad del entrenamiento, permitiendo que Juan mantenga la intensidad y el enfoque en el esfuerzo.","calentamiento":""},"dias":[{"id":"day-1771870384778-0","label":"Lunes","focus":"Pecho y Espalda","exercises":[{"id":"ex-1771870384779-1mf8p","name":"Press Banca con Barra","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=barbell%20bench%20press%20technique"},{"id":"ex-1771870384779-7rte7","name":"Remo con Barra Pendlay","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=pendlay%20row%20technique"},{"id":"ex-1771870384779-w81bm","name":"Press Inclinado con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=incline%20dumbbell%20press%20technique"},{"id":"ex-1771870384779-db8am","name":"Jalón al Pecho en Máquina","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=lat%20pulldown%20machine%20technique"},{"id":"ex-1771870384779-2dy37","name":"Aperturas en Polea Alta","sets":"3","reps":"15","url":"https://www.youtube.com/results?search_query=cable%20fly%20high%20to%20low%20technique"},{"id":"ex-1771870384779-6rh6t","name":"Remo en Máquina (Agarre Neutro)","sets":"3","reps":"15","url":"https://www.youtube.com/results?search_query=seated%20cable%20row%20neutral%20grip%20technique"}]},{"id":"day-1771870384779-1","label":"Martes","focus":"Hombros y Brazos","exercises":[{"id":"ex-1771870384779-y37h7","name":"Press Militar con Mancuernas Sentado","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20dumbbell%20shoulder%20press%20technique"},{"id":"ex-1771870384779-q3yd5","name":"Elevaciones Laterales con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20lateral%20raise%20technique"},{"id":"ex-1771870384779-z3cqc","name":"Curl de Bíceps con Barra Z","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=ez%20bar%20bicep%20curl%20technique"},{"id":"ex-1771870384779-fzlox","name":"Extensiones de Tríceps en Polea Alta (Cuerda)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=rope%20triceps%20pushdown%20technique"},{"id":"ex-1771870384779-ty44a","name":"Face Pulls","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=face%20pull%20exercise%20technique"},{"id":"ex-1771870384779-raw41","name":"Curl Martillo con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20hammer%20curl%20technique"},{"id":"ex-1771870384779-5zdrh","name":"Extensiones de Tríceps por Encima de la Cabeza con Mancuerna","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=overhead%20dumbbell%20triceps%20extension%20technique"}]},{"id":"day-1771870384779-2","label":"Miércoles","focus":"Piernas y Pantorrillas","exercises":[{"id":"ex-1771870384779-ju2iz","name":"Sentadilla con Barra (Énfasis en la técnica)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=barbell%20squat%20technique%20beginner"},{"id":"ex-1771870384779-7o92u","name":"Prensa de Piernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20press%20machine%20technique"},{"id":"ex-1771870384779-xxnvl","name":"Curl de Femoral Sentado","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=seated%20hamstring%20curl%20technique"},{"id":"ex-1771870384779-e8oj3","name":"Extensiones de Cuádriceps","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20extension%20machine%20technique"},{"id":"ex-1771870384779-a4ny1","name":"Elevación de Talones de Pie en Máquina","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=standing%20calf%20raise%20machine%20technique"},{"id":"ex-1771870384779-5ccmt","name":"Zancadas con Mancuernas","sets":"3 por pierna","reps":"10-12 por pierna","url":"https://www.youtube.com/results?search_query=dumbbell%20lunges%20technique"}]},{"id":"day-1771870384779-3","label":"Jueves","focus":"Cuerpo Completo: Refuerzo y Acondicionamiento","exercises":[{"id":"ex-1771870384779-ur88f","name":"Dominadas Asistidas en Máquina o Banda","sets":"3","reps":"8-12","url":"https://www.youtube.com/results?search_query=assisted%20pull%20up%20machine%20technique"},{"id":"ex-1771870384779-68sj2","name":"Flexiones en el Suelo o con Rodillas apoyadas","sets":"3","reps":"AMRAP (Máximas repeticiones con buena forma)","url":"https://www.youtube.com/results?search_query=push%20up%20technique%20beginner"},{"id":"ex-1771870384779-zwun7","name":"Remo en Polea Baja Unilateral","sets":"3 por lado","reps":"12-15 por lado","url":"https://www.youtube.com/results?search_query=single%20arm%20cable%20row%20technique"},{"id":"ex-1771870384779-kqsv9","name":"Press de Hombros con Mancuernas de Pie (ligero)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=standing%20dumbbell%20shoulder%20press%20technique"},{"id":"ex-1771870384779-235y6","name":"Plancha (Core)","sets":"3","reps":"30-60 segundos de mantenimiento","url":"https://www.youtube.com/results?search_query=plank%20exercise%20technique"},{"id":"ex-1771870384779-gllkj","name":"Crunch Abdominal en Máquina","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=ab%20machine%20crunch%20technique"}]}]};
+        const plan = {"meta":{"nombre":"ANGELICA","telefono":"4423639627","fechaInicio":"2026-02-24","nivel":1,"lugar":"Commercial Gym","accessType":"trial","generatedDate":"2026-02-24T17:04:33.975Z"},"contenido":{"frecuencia":"4 Días / Semana","estrategia":"Acondicionamiento Muscular Integral y Gasto Calórico Elevado","promo":"LA DISCIPLINA ES EL PUENTE ENTRE METAS Y LOGROS.","nutricion":"La nutrición adecuada es el 70% - 80 % de tus resultados. \nEn INFIT también te podemos apoyar con tu plan de alimentación \n","descanso":"Mantén el descanso entre series de 60-90 segundos para maximizar la quema de grasa y la recuperación. En el día 4, busca transiciones rápidas entre ejercicios.","calentamiento":""},"dias":[{"id":"day-1771952573531-0","label":"Lunes","focus":"Pecho y Espalda","exercises":[{"id":"ex-1771952573532-6dmtf","name":"Press de Banca con Mancuernas (Plano)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=dumbbell%20bench%20press%20technique"},{"id":"ex-1771952573532-30aa8","name":"Aperturas en Máquina (Pec Deck)","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=pec%20deck%20fly%20machine%20technique"},{"id":"ex-1771952573532-wchfc","name":"Jalón al Pecho en Máquina (Agarre neutro)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=neutral%20grip%20lat%20pulldown%20technique"},{"id":"ex-1771952573532-yr81k","name":"Remo Sentado en Máquina (Agarre estrecho)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20cable%20row%20narrow%20grip%20technique"},{"id":"ex-1771952573532-8ajfy","name":"Hiperextensiones","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=back%20extension%20hyperextension%20technique"}]},{"id":"day-1771952573532-1","label":"Martes","focus":"Hombros y Brazos","exercises":[{"id":"ex-1771952573532-axmm6","name":"Press Militar con Mancuernas (Sentado)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=seated%20dumbbell%20shoulder%20press%20technique"},{"id":"ex-1771952573532-eff0c","name":"Elevaciones Laterales con Mancuernas","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20lateral%20raise%20technique"},{"id":"ex-1771952573532-b7syz","name":"Face Pulls en Polea Alta","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=cable%20face%20pull%20technique"},{"id":"ex-1771952573532-xscxk","name":"Curl de Bíceps con Mancuernas (Alterno)","sets":"3","reps":"10-12 por brazo","url":"https://www.youtube.com/results?search_query=alternating%20dumbbell%20bicep%20curl%20technique"},{"id":"ex-1771952573532-iy76e","name":"Extensiones de Tríceps en Polea Alta (Pushdown)","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=cable%20tricep%20pushdown%20technique"},{"id":"ex-1771952573532-k4iam","name":"Extensiones de Tríceps por encima de la cabeza con Mancuerna","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=dumbbell%20overhead%20tricep%20extension%20technique"}]},{"id":"day-1771952573532-2","label":"Jueves","focus":"Piernas y Glúteos","exercises":[{"id":"ex-1771952573532-ulmmh","name":"Prensa de Piernas","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=leg%20press%20machine%20technique"},{"id":"ex-1771952573532-3i6iz","name":"Sentadilla Goblet","sets":"3","reps":"10-12","url":"https://www.youtube.com/results?search_query=goblet%20squat%20technique"},{"id":"ex-1771952573532-fr7qb","name":"Curl de Femoral en Máquina","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=hamstring%20curl%20machine%20technique"},{"id":"ex-1771952573532-04s74","name":"Extensiones de Cuádriceps en Máquina","sets":"3","reps":"12-15","url":"https://www.youtube.com/results?search_query=leg%20extension%20machine%20technique"},{"id":"ex-1771952573532-x32w6","name":"Puente de Glúteos (Glute Bridge)","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=glute%20bridge%20exercise%20technique"},{"id":"ex-1771952573532-7hyxz","name":"Elevación de Talones de pie","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=standing%20calf%20raise%20technique"}]},{"id":"day-1771952573532-3","label":"Viernes","focus":"Acondicionamiento Metabólico y Core","exercises":[{"id":"ex-1771952573532-cxhwa","name":"Saltos de Tijera (Jumping Jacks)","sets":"3","reps":"45-60s","url":"https://www.youtube.com/results?search_query=jumping%20jacks%20exercise%20technique"},{"id":"ex-1771952573532-kiawa","name":"Sentadilla con Peso Corporal","sets":"3","reps":"15-20","url":"https://www.youtube.com/results?search_query=bodyweight%20squat%20technique"},{"id":"ex-1771952573532-z2t4u","name":"Flexiones (De rodillas si es necesario)","sets":"3","reps":"Máximas repeticiones (6-10)","url":"https://www.youtube.com/results?search_query=knee%20push%20ups%20technique"},{"id":"ex-1771952573532-ilcj7","name":"Remo Invertido (usando barra de Smith o TRX)","sets":"3","reps":"8-12","url":"https://www.youtube.com/results?search_query=inverted%20row%20smith%20machine%20technique"},{"id":"ex-1771952573532-zk1o7","name":"Plancha (Plank)","sets":"3","reps":"30-45s","url":"https://www.youtube.com/results?search_query=plank%20exercise%20technique"},{"id":"ex-1771952573532-39udg","name":"Crunch Bicicleta","sets":"3","reps":"15-20 por lado","url":"https://www.youtube.com/results?search_query=bicycle%20crunch%20exercise%20technique"}]}]};
         const IS_TRIAL_MODE = plan.meta.accessType === 'trial';
         const TRIAL_HOURS = 24;
-        const REGISTERED_PHONE = "5535766379";
+        const REGISTERED_PHONE = "4423639627";
+        
+        // LLAVE MAESTRA DEL ENTRENADOR - CAMBIAR AÑO SEGÚN CORRESPONDA
+        const MASTER_KEY = "INFIT2026PRO";
         
         const CLIENT_ID = plan.meta.nombre.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + REGISTERED_PHONE.slice(-4);
         const DEVICE_KEY = 'infit_device_' + CLIENT_ID;
         const TRIAL_START_KEY = 'infit_trial_' + CLIENT_ID;
         const GOAL_KEY = 'infit_goal_' + CLIENT_ID;
-        const SESSION_KEY = 'infit_session_' + CLIENT_ID;  // Token de sesión activa
+        const SESSION_KEY = 'infit_session_' + CLIENT_ID;
         
         let selectedGoal = '';
         let activeDayIdx = 0;
@@ -327,14 +462,13 @@ Come alimentos reales y evita procesados.</p>
 
         // --- FUNCIONES DE SEGURIDAD ---
         function generateDeviceFingerprint() {
-            // Fingerprint ESTABLE - solo propiedades que NO cambian entre sesiones
             const fingerprint = [
                 navigator.language,
                 screen.width + 'x' + screen.height,
                 screen.colorDepth,
                 navigator.platform,
                 navigator.hardwareConcurrency || '8',
-                new Date().getTimezoneOffset().toString()  // Zona horaria
+                new Date().getTimezoneOffset().toString()
             ].join('|');
             let hash = 0;
             for (let i = 0; i < fingerprint.length; i++) {
@@ -349,18 +483,17 @@ Come alimentos reales y evita procesados.</p>
         function registerDevice() {
             const deviceId = generateDeviceFingerprint();
             localStorage.setItem(DEVICE_KEY, deviceId);
-            // También guardar sesión activa
             localStorage.setItem(SESSION_KEY, JSON.stringify({
                 device: deviceId,
                 timestamp: Date.now(),
-                expires: Date.now() + (7 * 24 * 60 * 60 * 1000)  // 7 días
+                expires: Date.now() + (7 * 24 * 60 * 60 * 1000)
             }));
             return deviceId;
         }
         
         function isAuthorizedDevice() {
             const storedId = getStoredDeviceId();
-            if (!storedId) return null;  // Nunca se ha registrado
+            if (!storedId) return null;
             const currentId = generateDeviceFingerprint();
             return storedId === currentId;
         }
@@ -370,12 +503,10 @@ Come alimentos reales y evita procesados.</p>
             if (!sessionData) return false;
             try {
                 const session = JSON.parse(sessionData);
-                // Verificar si la sesión no ha expirado (7 días)
                 if (Date.now() > session.expires) {
                     localStorage.removeItem(SESSION_KEY);
                     return false;
                 }
-                // Verificar que el dispositivo coincida
                 const currentId = generateDeviceFingerprint();
                 return session.device === currentId;
             } catch (e) {
@@ -385,42 +516,41 @@ Come alimentos reales y evita procesados.</p>
         
         function normalizePhone(phone) { return phone.replace(/\D/g, ''); }
 
-        // --- INICIALIZACIÓN ---
-        document.getElementById('unlock-btn').addEventListener('click', verifyAndUnlock);
-        document.getElementById('phone-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('pass-input').focus(); });
-        document.getElementById('pass-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') verifyAndUnlock(); });
-
-        // LLAVE MAESTRA DEL ENTRENADOR - Cambiar por tu clave personalizada
-        const MASTER_KEY = "INFIT2025PRO";
+        // --- HABILITAR BOTÓN SIEMPRE (para permitir llave maestra) ---
+        const phoneInput = document.getElementById('phone-input');
+        const unlockBtn = document.getElementById('unlock-btn');
         
+        // Permitir acceso en cualquier momento
+        unlockBtn.addEventListener('click', verifyAndUnlock);
+        
+        phoneInput.addEventListener('keypress', (e) => { 
+            if(e.key === 'Enter') {
+                verifyAndUnlock();
+            }
+        });
+
         // === VERIFICAR SESIÓN ACTIVA AL CARGAR ===
         async function checkExistingSession() {
-            // Inicializar Firebase primero
             userId = plan.meta.nombre.toLowerCase().replace(/[^a-z0-9]/g, '');
             initFirebase();
             
-            // Esperar un momento para que Firebase esté listo
             await new Promise(r => setTimeout(r, 500));
             
-            // Verificar si hay sesión local
             if (!hasActiveSession()) {
                 console.log('🔒 No hay sesión local activa');
                 return false;
             }
             
-            // Verificar que el dispositivo coincida con Firebase
             const currentDeviceId = generateDeviceFingerprint();
             const firebaseDeviceId = await checkFirebaseDevice();
             
             if (firebaseDeviceId && firebaseDeviceId !== currentDeviceId) {
-                // El dispositivo en Firebase es diferente - limpiar sesión local
                 console.log('⚠️ Dispositivo no coincide con Firebase');
                 localStorage.removeItem(SESSION_KEY);
                 localStorage.removeItem(DEVICE_KEY);
                 return false;
             }
             
-            // Todo correcto - acceso directo
             console.log('✅ Sesión verificada en Firebase');
             document.getElementById('lock-screen').style.display = 'none';
             updateLastAccess();
@@ -428,52 +558,38 @@ Come alimentos reales y evita procesados.</p>
             return true;
         }
         
-        // Ejecutar verificación al cargar
         setTimeout(async () => {
             await checkExistingSession();
         }, 200);
         
+        // === VERIFICACIÓN CON TELÉFONO O LLAVE MAESTRA ===
         async function verifyAndUnlock() {
-            const phoneInput = normalizePhone(document.getElementById('phone-input').value);
-            const passInput = document.getElementById('pass-input').value.toUpperCase().trim();
+            const input = document.getElementById('phone-input').value.trim().toUpperCase();
             const errorMsg = document.getElementById('error-msg');
             errorMsg.classList.add('hidden');
             
-            // VERIFICACIÓN DE LLAVE MAESTRA (Solo para entrenador)
-            const isMasterAccess = passInput === MASTER_KEY;
-            
-            if (isMasterAccess) {
-                // ACCESO ENTRENADOR: Omite verificación de teléfono y dispositivo
-                console.log('🔓 Acceso de entrenador autorizado');
+            // ===== VERIFICACIÓN DE LLAVE MAESTRA (ENTRENADOR) =====
+            if (input === MASTER_KEY) {
+                console.log('🔓 Acceso de entrenador autorizado con llave maestra');
                 unlockApp();
                 return;
             }
             
-            // VERIFICACIÓN NORMAL PARA CLIENTES
-            if (phoneInput !== REGISTERED_PHONE) {
+            // ===== VERIFICACIÓN NORMAL PARA CLIENTES =====
+            const phoneInputValue = normalizePhone(document.getElementById('phone-input').value);
+            
+            if (phoneInputValue !== REGISTERED_PHONE) {
                 errorMsg.innerHTML = '<i class="fas fa-phone-slash mr-1"></i> Teléfono no registrado. Contacta a tu entrenador.';
                 errorMsg.classList.remove('hidden');
                 return;
             }
             
-            const firstName = plan.meta.nombre.trim().split(" ")[0].toUpperCase();
-            const correctPass = firstName + new Date().getFullYear();
-            
-            if (passInput !== correctPass) {
-                errorMsg.innerHTML = '<i class="fas fa-key mr-1"></i> Contraseña incorrecta';
-                errorMsg.classList.remove('hidden');
-                return;
-            }
-            
-            // === VERIFICACIÓN DE DISPOSITIVO EN FIREBASE ===
             const currentDeviceId = generateDeviceFingerprint();
             const firebaseDeviceId = await checkFirebaseDevice();
             
             if (firebaseDeviceId === null) {
-                // NO hay dispositivo registrado en Firebase - Es el primer acceso
-                console.log('🆕 Primer acceso - Registrando dispositivo en Firebase');
+                console.log('🆕 Primer acceso - Registrando dispositivo');
                 
-                // Registrar en Firebase
                 try {
                     await registerDeviceInFirebase(currentDeviceId);
                 } catch (e) {
@@ -482,17 +598,14 @@ Come alimentos reales y evita procesados.</p>
                     return;
                 }
                 
-                // Registrar localmente
                 registerDevice();
                 if (IS_TRIAL_MODE) { localStorage.setItem(TRIAL_START_KEY, new Date().toISOString()); }
                 showWelcomeScreen();
                 
             } else if (firebaseDeviceId === currentDeviceId) {
-                // Mismo dispositivo - Acceso permitido
                 console.log('✅ Dispositivo verificado en Firebase');
                 updateLastAccess();
                 
-                // Actualizar sesión local
                 localStorage.setItem(SESSION_KEY, JSON.stringify({
                     device: currentDeviceId,
                     timestamp: Date.now(),
@@ -501,7 +614,6 @@ Come alimentos reales y evita procesados.</p>
                 unlockApp();
                 
             } else {
-                // Dispositivo DIFERENTE - BLOQUEADO
                 console.log('❌ Dispositivo no autorizado en Firebase');
                 showDeviceBlocked();
             }
@@ -512,7 +624,6 @@ Come alimentos reales y evita procesados.</p>
             document.getElementById('lock-screen').style.display = 'none';
             document.getElementById('welcome-screen').style.display = 'flex';
             
-            // Verificar si ya tiene objetivo guardado
             const existingGoal = localStorage.getItem(GOAL_KEY);
             if (existingGoal) {
                 document.getElementById('custom-goal').value = existingGoal;
@@ -522,7 +633,6 @@ Come alimentos reales y evita procesados.</p>
         }
 
         function selectGoal(btn, goalText) {
-            // Quitar selección previa
             document.querySelectorAll('.example-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             selectedGoal = goalText;
@@ -530,7 +640,6 @@ Come alimentos reales y evita procesados.</p>
             document.getElementById('continue-btn').disabled = false;
         }
 
-        // Listener para input personalizado
         document.getElementById('custom-goal')?.addEventListener('input', function() {
             if (this.value.trim().length > 5) {
                 selectedGoal = this.value.trim();
@@ -546,7 +655,6 @@ Come alimentos reales y evita procesados.</p>
             
             localStorage.setItem(GOAL_KEY, selectedGoal);
             
-            // Animación de transición
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 }, colors: ['#D4AF37', '#FFFFFF'] });
             
             document.getElementById('welcome-screen').style.opacity = '0';
@@ -557,18 +665,15 @@ Come alimentos reales y evita procesados.</p>
         }
 
         function unlockApp() {
-            // OCULTAR PANTALLA DE LOGIN
             document.getElementById('lock-screen').style.display = 'none';
             document.getElementById('welcome-screen').style.display = 'none';
             
             const content = document.getElementById('app-content');
             
-            // Asegurar que userId esté definido
             if (!userId) {
                 userId = plan.meta.nombre.toLowerCase().replace(/[^a-z0-9]/g, '');
             }
             
-            // Inicializar Firebase si no está listo
             if (!db) {
                 initFirebase();
             }
@@ -576,7 +681,7 @@ Come alimentos reales y evita procesados.</p>
             updateLevelUI();
             displayGoal();
             setDynamicMotivation();
-            loadData();  // Cargar progreso de entrenamiento
+            loadData();
 
             content.classList.remove('opacity-0');
             checkAccessExpiration();
@@ -751,12 +856,10 @@ Come alimentos reales y evita procesados.</p>
             } catch (e) { console.error("Firebase Error:", e); }
         }
         
-        // === FUNCIONES DE REGISTRO DE DISPOSITIVO EN FIREBASE ===
         function getFirebaseDeviceRef() {
             return db.ref('devices/' + userId);
         }
         
-        // Verificar en Firebase si ya hay un dispositivo registrado
         async function checkFirebaseDevice() {
             return new Promise((resolve) => {
                 if (!db) { resolve(null); return; }
@@ -774,7 +877,6 @@ Come alimentos reales y evita procesados.</p>
             });
         }
         
-        // Registrar dispositivo en Firebase
         async function registerDeviceInFirebase(deviceId) {
             return new Promise((resolve, reject) => {
                 if (!db) { reject('No database'); return; }
@@ -791,7 +893,6 @@ Come alimentos reales y evita procesados.</p>
             });
         }
         
-        // Actualizar último acceso
         async function updateLastAccess() {
             if (!db) return;
             getFirebaseDeviceRef().child('lastAccess').set(new Date().toISOString());
@@ -862,7 +963,7 @@ Come alimentos reales y evita procesados.</p>
                     <span class="text-[10px] font-bold uppercase">${d.label.substring(0,3)}</span>
                     <span class="text-lg font-heading font-bold">${i + 1}</span>
                 </button>
-            `).join('');
+           `).join('');
         }
 
         function renderWorkout() {
